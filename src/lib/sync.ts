@@ -71,6 +71,7 @@ interface KadoaTrade {
   transaction_type?: string | null
   amount_range_label?: string | null
   is_late?: number | boolean | null
+  doc_url?: string | null
   filer_id?: string | null
   filer_name?: string | null
   chamber?: string | null
@@ -150,8 +151,9 @@ export async function syncAll() {
             filedLate: t.is_late === 1 || t.is_late === true,
             source: t.chamber === 'senate' ? 'senate' : 'house',
             externalId: t.id,
+            docUrl: t.doc_url ?? null,
           },
-          update: {},
+          update: { docUrl: t.doc_url ?? null },
         })
         count++
       } catch {

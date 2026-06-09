@@ -50,7 +50,8 @@ export async function sendAlerts(newTrades: NewTrade[]): Promise<void> {
 
     try {
       await resend.emails.send({
-        from: 'CapitolTrades <alerts@capitoltrades.app>',
+        from: process.env.RESEND_FROM_EMAIL ?? 'CapitolTrades <onboarding@resend.dev>',
+        replyTo: 'noreply@resend.dev',
         to: sub.email,
         subject: `🏛️ ${matching.length} new congressional trade${matching.length > 1 ? 's' : ''} disclosed`,
         text: `New congressional trades matching your watchlist:\n\n${tradeLines}\n\n---\nView all trades at your CapitolTrades dashboard.\nTo unsubscribe, reply to this email.`,

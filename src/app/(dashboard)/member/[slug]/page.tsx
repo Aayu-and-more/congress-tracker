@@ -63,6 +63,12 @@ export default async function MemberPage({ params }: PageProps) {
           </h1>
           {member.party === 'D' && <span className="px-2 py-0.5 rounded text-xs bg-blue-400/10 text-blue-400">Democrat</span>}
           {member.party === 'R' && <span className="px-2 py-0.5 rounded text-xs bg-red-400/10 text-red-400">Republican</span>}
+          <Link
+            href={`/portfolio/${member.slug}`}
+            className="text-xs px-3 py-1.5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg text-[#999] hover:text-[#f4f4f4] hover:border-[#444] transition-all"
+          >
+            View Portfolio →
+          </Link>
         </div>
         <p className="text-[#666] text-sm">
           {member.chamber === 'senate' ? 'Senator' : 'Representative'}

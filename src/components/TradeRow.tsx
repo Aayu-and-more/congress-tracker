@@ -9,6 +9,7 @@ interface Trade {
   transactionDate: string | Date | null
   filedLate: boolean
   source: string
+  docUrl?: string | null
   member: {
     name: string
     party: string | null
@@ -81,6 +82,21 @@ export default function TradeRow({ trade }: { trade: Trade }) {
         <span>{formatDate(trade.transactionDate)}</span>
         {trade.filedLate && (
           <span className="ml-2 px-1.5 py-0.5 rounded text-xs bg-orange-400/10 text-orange-400">LATE</span>
+        )}
+      </td>
+      <td className="px-4 py-3">
+        {trade.docUrl ? (
+          <a
+            href={trade.docUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="View official government disclosure"
+            className="text-xs text-blue-400/60 hover:text-blue-400 transition-colors"
+          >
+            Gov ↗
+          </a>
+        ) : (
+          <span className="text-xs text-[#222]">—</span>
         )}
       </td>
     </tr>

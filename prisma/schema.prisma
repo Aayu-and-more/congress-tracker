@@ -31,6 +31,7 @@ model Trade {
   filedLate        Boolean   @default(false)
   source           String
   externalId       String?   @unique
+  docUrl           String?
   createdAt        DateTime  @default(now())
   @@index([ticker])
   @@index([memberId])

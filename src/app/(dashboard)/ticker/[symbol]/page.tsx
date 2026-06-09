@@ -50,6 +50,17 @@ export default async function TickerPage({ params }: PageProps) {
           <PriceBadge ticker={symbol.toUpperCase()} />
         </div>
         <p className="text-[#666] text-sm mt-1">{trades.length} congressional trades disclosed</p>
+        <p className="text-xs text-[#444] mt-1">
+          Data from{' '}
+          <a href="https://disclosures-clerk.house.gov/FinancialDisclosure" target="_blank" rel="noopener noreferrer" className="text-blue-400/60 hover:text-blue-400 transition-colors">
+            House Clerk
+          </a>
+          {' & '}
+          <a href="https://efdsearch.senate.gov/search/" target="_blank" rel="noopener noreferrer" className="text-blue-400/60 hover:text-blue-400 transition-colors">
+            Senate eFD
+          </a>
+          {' '}— mandatory STOCK Act filings
+        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-8">

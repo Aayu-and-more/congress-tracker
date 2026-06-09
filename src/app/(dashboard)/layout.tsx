@@ -8,6 +8,7 @@ const navLinks = [
   { href: '/', label: 'Live Feed', icon: '📡' },
   { href: '/members', label: 'Members', icon: '👤' },
   { href: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
+  { href: '/portfolio', label: 'Portfolios', icon: '💼' },
   { href: '/watchlist', label: 'Watchlist', icon: '★' },
 ]
 

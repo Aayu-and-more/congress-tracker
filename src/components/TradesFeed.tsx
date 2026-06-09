@@ -87,7 +87,7 @@ export default function TradesFeed() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#1f1f1f]">
-                {['Ticker', 'Asset', 'Type', 'Amount', 'Member', 'Chamber', 'Date'].map(h => (
+                {['Ticker', 'Asset', 'Type', 'Amount', 'Member', 'Chamber', 'Date', 'Source'].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-medium text-[#555] uppercase tracking-wider">{h}</th>
                 ))}
               </tr>

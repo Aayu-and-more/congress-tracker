@@ -1,4 +1,5 @@
 import TradesFeed from '@/components/TradesFeed'
+import SignalsBar from '@/components/SignalsBar'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -34,6 +35,7 @@ export default async function FeedPage() {
           </span>
         )}
       </div>
+      <SignalsBar />
       <TradesFeed />
     </div>
   )
