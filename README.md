@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CapitolTrades
 
-## Getting Started
+CapitolTrades is a Next.js 16 app that tracks every stock trade publicly disclosed by US senators and representatives under the STOCK Act. It syncs trade data from the Capitol Trades public API, stores it in a local SQLite database via Prisma, and surfaces a live feed, per-member profiles, a leaderboard, and per-ticker drill-downs — all in a dark-themed dashboard.
 
-First, run the development server:
+## Quick Start
 
 ```bash
+# 1. Install dependencies
+npm install
+
+# 2. Edit environment variables
+cp .env.local .env.local   # fill in FINNHUB_API_KEY and SYNC_SECRET
+
+# 3. Run database migrations
+npx prisma migrate dev
+
+# 4. Start the dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# → http://localhost:3000
+
+# 5. Seed trade data (run once after the server is up)
+curl -X POST http://localhost:3000/api/sync \
+  -H "Authorization: Bearer YOUR_SYNC_SECRET"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Required | Description |
+|---|---|---|
+| `FINNHUB_API_KEY` | Optional | Finnhub API key for live price data |
+| `SYNC_SECRET` | Required | Bearer token used to authorize `POST /api/sync` |
+| `NEXT_PUBLIC_BASE_URL` | Optional | Full origin URL (default `http://localhost:3000`). Used by client-side code. |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Data Sources
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Senate disclosures** — U.S. Senate STOCK Act filings via [Capitol Trades](https://www.capitoltrades.com/) public API
+- **House disclosures** — U.S. House of Representatives STOCK Act filings via Capitol Trades
+- **Price data** — [Finnhub](https://finnhub.io/) (optional, for enriching trades with live quotes)

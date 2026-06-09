@@ -36,6 +36,13 @@ yarn-error.log*
 # vercel
 .vercel
 
+# database — never commit the local SQLite file
+dev.db
+dev.db-journal
+dev.db-wal
+dev.db-shm
+*.db
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

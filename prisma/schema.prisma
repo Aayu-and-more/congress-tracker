@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Member {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  party     String?
+  chamber   String
+  state     String?
+  slug      String   @unique
+  trades    Trade[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Trade {
+  id               String    @id @default(cuid())
+  memberId         String
+  member           Member    @relation(fields: [memberId], references: [id])
+  ticker           String?
+  assetName        String
+  tradeType        String
+  amount           String
+  transactionDate  DateTime?
+  disclosureDate   DateTime?
+  filedLate        Boolean   @default(false)
+  source           String
+  externalId       String?   @unique
+  createdAt        DateTime  @default(now())
+  @@index([ticker])
+  @@index([memberId])
+  @@index([transactionDate])
+}
+
+model SyncLog {
+  id        String   @id @default(cuid())
+  source    String
+  status    String
+  count     Int      @default(0)
+  error     String?
+  syncedAt  DateTime @default(now())
+}
+
+model AlertSubscription {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  members   String   @default("[]")
+  tickers   String   @default("[]")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
