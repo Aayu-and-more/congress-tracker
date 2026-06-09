@@ -7,9 +7,9 @@ function createClient(): PrismaClient {
 
   if (dbUrl.startsWith('postgresql') || dbUrl.startsWith('postgres')) {
     // Production: Neon serverless Postgres
-    const { neonConfig, Pool } = require('@neondatabase/serverless')
+    // Node.js 22+ has native WebSocket — no need for the 'ws' polyfill
+    const { Pool } = require('@neondatabase/serverless')
     const { PrismaNeon } = require('@prisma/adapter-neon')
-    neonConfig.webSocketConstructor = require('ws')
     const pool = new Pool({ connectionString: dbUrl })
     return new PrismaClient({ adapter: new PrismaNeon(pool) })
   }
