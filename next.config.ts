@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Prevent Turbopack from bundling native addons — required at runtime only in local dev
+  serverExternalPackages: [
+    'better-sqlite3',
+    '@prisma/adapter-better-sqlite3',
+  ],
   async headers() {
     return [
       {
