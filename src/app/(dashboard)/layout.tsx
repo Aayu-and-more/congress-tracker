@@ -6,6 +6,8 @@ import { useState, useEffect } from 'react'
 
 const navLinks = [
   { href: '/', label: 'Live Feed', icon: '📡' },
+  { href: '/signals', label: 'Buy Signals', icon: '⚡' },
+  { href: '/dump-watch', label: 'Dump Watch', icon: '🔴' },
   { href: '/members', label: 'Members', icon: '👤' },
   { href: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
   { href: '/portfolio', label: 'Portfolios', icon: '💼' },
