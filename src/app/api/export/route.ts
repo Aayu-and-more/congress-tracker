@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// Allowlists for enum-like parameters
 const VALID_CHAMBERS = new Set(['senate', 'house'])
 const VALID_PARTIES = new Set(['D', 'R', 'I', 'unknown'])
 const VALID_TRADE_TYPES = new Set(['purchase', 'sale_full', 'sale_partial', 'sale', 'exchange', 'unknown'])
 
+const EXPORT_CAP = 10_000
+
+function escapeCsv(value: string | null | undefined): string {
+  if (value == null) return ''
+  const str = String(value)
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return '"' + str.replace(/"/g, '""') + '"'
+  }
+  return str
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
-
-  const rawPage = parseInt(searchParams.get('page') ?? '1', 10)
-  const page = Number.isFinite(rawPage) && rawPage >= 1 && rawPage <= 1000 ? rawPage : 1
-
-  const rawLimit = parseInt(searchParams.get('limit') ?? '50', 10)
-  const limit = Math.min(Number.isFinite(rawLimit) && rawLimit >= 1 ? rawLimit : 50, 100)
 
   const rawTicker = searchParams.get('ticker')
   const ticker = rawTicker && rawTicker.length <= 10 ? rawTicker.replace(/[^A-Za-z0-9.^]/g, '') : null
@@ -28,7 +32,6 @@ export async function GET(req: NextRequest) {
   const tradeType = rawTradeType && VALID_TRADE_TYPES.has(rawTradeType) ? rawTradeType : null
 
   const rawMemberId = searchParams.get('memberId')
-  // memberId is a cuid/uuid — allow alphanumeric + hyphens, max 36 chars
   const memberId = rawMemberId && /^[a-z0-9_-]{1,36}$/i.test(rawMemberId) ? rawMemberId : null
 
   const rawFrom = searchParams.get('from')
@@ -70,27 +73,45 @@ export async function GET(req: NextRequest) {
       : {}),
   }
 
-  const [trades, total] = await Promise.all([
-    prisma.trade.findMany({
-      where,
-      include: {
-        member: {
-          select: {
-            id: true,
-            name: true,
-            party: true,
-            chamber: true,
-            state: true,
-            slug: true,
-          },
+  const trades = await prisma.trade.findMany({
+    where,
+    include: {
+      member: {
+        select: {
+          name: true,
+          party: true,
+          chamber: true,
+          state: true,
         },
       },
-      orderBy: { transactionDate: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-    }),
-    prisma.trade.count({ where }),
-  ])
+    },
+    orderBy: { transactionDate: 'desc' },
+    take: EXPORT_CAP,
+  })
 
-  return NextResponse.json({ trades, total, page, limit, pages: Math.ceil(total / limit) })
+  const header = 'Date,Member,Party,Chamber,State,Ticker,Asset,Type,Amount,FiledLate,DocURL'
+  const rows = trades.map((t) =>
+    [
+      escapeCsv(t.transactionDate ? t.transactionDate.toISOString().slice(0, 10) : null),
+      escapeCsv(t.member.name),
+      escapeCsv(t.member.party),
+      escapeCsv(t.member.chamber),
+      escapeCsv(t.member.state),
+      escapeCsv(t.ticker),
+      escapeCsv(t.assetName),
+      escapeCsv(t.tradeType),
+      escapeCsv(t.amount),
+      escapeCsv(String(t.filedLate)),
+      escapeCsv(t.docUrl),
+    ].join(',')
+  )
+
+  const csv = [header, ...rows].join('\n')
+
+  return new NextResponse(csv, {
+    headers: {
+      'Content-Type': 'text/csv',
+      'Content-Disposition': 'attachment; filename="congress-trades.csv"',
+    },
+  })
 }

@@ -2,15 +2,34 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 
 const navLinks = [
   { href: '/', label: 'Live Feed', icon: '📡' },
   { href: '/members', label: 'Members', icon: '👤' },
   { href: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
+  { href: '/analytics', label: 'Analytics', icon: '📊' },
+  { href: '/late-filers', label: 'Late Filers', icon: '⚠️' },
+  { href: '/watchlist', label: 'Watchlist', icon: '⭐' },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const [syncState, setSyncState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+
+  async function handleSync() {
+    setSyncState('loading')
+    try {
+      const res = await fetch('/api/admin/sync', { method: 'POST' })
+      if (!res.ok) throw new Error()
+      setSyncState('done')
+    } catch {
+      setSyncState('error')
+    } finally {
+      setTimeout(() => setSyncState('idle'), 3000)
+    }
+  }
+
   return (
     <aside className="hidden md:flex flex-col w-56 min-h-screen border-r border-[#1f1f1f] bg-[#0d0d0d] p-4">
       <div className="mb-8">
@@ -37,6 +56,16 @@ export default function Sidebar() {
       </nav>
       <div className="text-xs text-[#333] mt-4 leading-relaxed">
         Data sourced from public Senate &amp; House STOCK Act disclosures
+      </div>
+      <div className="mt-3">
+        <button
+          onClick={handleSync}
+          disabled={syncState === 'loading'}
+          title="Only works in local dev environment"
+          className="text-xs text-[#333] hover:text-[#666] transition-colors disabled:opacity-50"
+        >
+          {syncState === 'loading' ? 'Syncing...' : syncState === 'done' ? 'Synced!' : syncState === 'error' ? 'Error' : 'Sync (dev)'}
+        </button>
       </div>
     </aside>
   )

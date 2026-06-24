@@ -1,5 +1,6 @@
 import TradesFeed from '@/components/TradesFeed'
 import SignalsBar from '@/components/SignalsBar'
+import AlertSubscribe from '@/components/AlertSubscribe'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -37,6 +38,9 @@ export default async function FeedPage() {
       </div>
       <SignalsBar />
       <TradesFeed />
+      <div className="mt-8 max-w-lg">
+        <AlertSubscribe />
+      </div>
     </div>
   )
 }

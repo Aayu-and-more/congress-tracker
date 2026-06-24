@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
-  const days = Math.min(parseInt(searchParams.get('days') ?? '90'), 365)
+  const rawDays = parseInt(searchParams.get('days') ?? '90', 10)
+  const days = Number.isFinite(rawDays) && rawDays >= 7 && rawDays <= 365 ? rawDays : 90
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
   // Top bought tickers in window

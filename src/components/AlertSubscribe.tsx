@@ -58,7 +58,6 @@ export default function AlertSubscribe() {
         </form>
       )}
       {status === 'error' && <p className="text-red-400 text-xs mt-2">{message}</p>}
-      <p className="text-xs text-[#333] mt-3">Requires <code className="bg-[#1a1a1a] px-1 rounded">RESEND_API_KEY</code> to be set.</p>
     </div>
   )
 }

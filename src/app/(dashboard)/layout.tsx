@@ -2,18 +2,40 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import AlertSubscribe from '@/components/AlertSubscribe'
+import { useState, useEffect } from 'react'
 
 const navLinks = [
   { href: '/', label: 'Live Feed', icon: '📡' },
   { href: '/members', label: 'Members', icon: '👤' },
   { href: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
   { href: '/portfolio', label: 'Portfolios', icon: '💼' },
-  { href: '/watchlist', label: 'Watchlist', icon: '★' },
+  { href: '/analytics', label: 'Analytics', icon: '📊' },
+  { href: '/late-filers', label: 'Late Filers', icon: '⚠️' },
+  { href: '/watchlist', label: 'Watchlist', icon: '⭐' },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const [syncState, setSyncState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+  const [isLocalhost, setIsLocalhost] = useState(false)
+
+  useEffect(() => {
+    setIsLocalhost(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  }, [])
+
+  async function handleSync() {
+    setSyncState('loading')
+    try {
+      const res = await fetch('/api/admin/sync', { method: 'POST' })
+      if (!res.ok) throw new Error()
+      setSyncState('done')
+    } catch {
+      setSyncState('error')
+    } finally {
+      setTimeout(() => setSyncState('idle'), 3000)
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-[#0a0a0a]">
       {/* Sidebar */}
@@ -40,10 +62,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
           ))}
         </nav>
-        <div className="mb-4"><AlertSubscribe /></div>
         <div className="text-xs text-[#333] mt-4 leading-relaxed">
           Data sourced from public Senate &amp; House STOCK Act disclosures
         </div>
+        {isLocalhost && (
+          <div className="mt-3">
+            <button
+              onClick={handleSync}
+              disabled={syncState === 'loading'}
+              className="text-xs text-[#333] hover:text-[#666] transition-colors disabled:opacity-50"
+            >
+              {syncState === 'loading' ? 'Syncing...' : syncState === 'done' ? 'Synced!' : 'Sync (dev)'}
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* Main content - offset by sidebar width */}
