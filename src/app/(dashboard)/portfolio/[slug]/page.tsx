@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { getQuote } from '@/lib/finnhub'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -85,6 +86,28 @@ export default async function MemberPortfolioPage({ params }: PageProps) {
   const holding = portfolio.filter(h => h.status === 'holding')
   const reduced = portfolio.filter(h => h.status === 'reduced')
 
+  const topHoldings = portfolio.slice(0, 15)
+  const quoteResults = await Promise.allSettled(
+    topHoldings.map(h => getQuote(h.ticker))
+  )
+  const quoteMap = new Map<string, { c: number; pc: number } | null>()
+  topHoldings.forEach((h, i) => {
+    const result = quoteResults[i]
+    quoteMap.set(h.ticker, result.status === 'fulfilled' ? result.value : null)
+  })
+
+  let totalTodayChange = 0
+  let quotedCount = 0
+  for (const h of topHoldings) {
+    const q = quoteMap.get(h.ticker)
+    if (q && q.pc > 0) {
+      const pct = ((q.c - q.pc) / q.pc) * 100
+      totalTodayChange += pct
+      quotedCount++
+    }
+  }
+  const avgTodayChange = quotedCount > 0 ? totalTodayChange / quotedCount : null
+
   return (
     <div className="p-6 md:p-8">
       <Link href="/portfolio" className="text-[#555] text-sm hover:text-[#f4f4f4] transition-colors mb-6 inline-block">
@@ -106,7 +129,7 @@ export default async function MemberPortfolioPage({ params }: PageProps) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         {[
           { label: 'Total Positions', value: portfolio.length },
           { label: 'Holding', value: holding.length },
@@ -118,6 +141,17 @@ export default async function MemberPortfolioPage({ params }: PageProps) {
             <div className="text-xs text-[#555] mt-1">{s.label}</div>
           </div>
         ))}
+        <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+          <div
+            className={`text-xl font-bold ${avgTodayChange === null ? 'text-[#555]' : avgTodayChange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}
+            style={{ fontFamily: 'var(--font-heading)' }}
+          >
+            {avgTodayChange === null
+              ? '—'
+              : `${avgTodayChange >= 0 ? '+' : ''}${avgTodayChange.toFixed(1)}%`}
+          </div>
+          <div className="text-xs text-[#555] mt-1">Avg Today</div>
+        </div>
       </div>
 
       {/* Holdings table */}
@@ -128,7 +162,7 @@ export default async function MemberPortfolioPage({ params }: PageProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#1f1f1f]">
-                {['Ticker', 'Asset', 'Status', 'Est. Buy Value', 'Buys', 'Sells', 'Last Activity', 'Source'].map(h => (
+                {['Ticker', 'Asset', 'Status', 'Est. Buy Value', 'Buys', 'Sells', 'Price', 'Today', 'Last Activity', 'Source'].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-medium text-[#555] uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -156,11 +190,35 @@ export default async function MemberPortfolioPage({ params }: PageProps) {
                   </td>
                   <td className="px-4 py-3 text-sm text-emerald-400">{h.buyCount}</td>
                   <td className="px-4 py-3 text-sm text-red-400">{h.sellCount}</td>
+                  <td className="px-4 py-3 text-sm font-mono">
+                    {(() => {
+                      const q = quoteMap.get(h.ticker)
+                      if (q && q.c > 0) {
+                        return <span className="text-[#f4f4f4]">${q.c.toFixed(2)}</span>
+                      }
+                      return <span className="text-[#444]">—</span>
+                    })()}
+                  </td>
+                  <td className="px-4 py-3 text-sm font-mono">
+                    {(() => {
+                      const q = quoteMap.get(h.ticker)
+                      if (q && q.pc > 0) {
+                        const pct = ((q.c - q.pc) / q.pc) * 100
+                        const isPos = pct >= 0
+                        return (
+                          <span className={isPos ? 'text-emerald-400' : 'text-red-400'}>
+                            {isPos ? '+' : ''}{pct.toFixed(1)}%
+                          </span>
+                        )
+                      }
+                      return <span className="text-[#444]">—</span>
+                    })()}
+                  </td>
                   <td className="px-4 py-3 text-xs text-[#555]">
                     {h.lastActivity ? new Date(h.lastActivity).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                   </td>
                   <td className="px-4 py-3">
-                    {h.docUrl ? (
+                    {h.docUrl?.startsWith('https://') ? (
                       <a href={h.docUrl} target="_blank" rel="noopener noreferrer"
                         className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
                         Gov Doc ↗
@@ -177,7 +235,7 @@ export default async function MemberPortfolioPage({ params }: PageProps) {
       )}
 
       <div className="mt-6 text-xs text-[#333] leading-relaxed">
-        ⚠️ Values are estimates from midpoints of disclosed ranges. Members report ranges, not exact amounts. Not investment advice. All data from official STOCK Act filings.
+        ⚠️ Values are estimates from midpoints of disclosed ranges. Members report ranges, not exact amounts. Not investment advice. All data from official STOCK Act filings. + Live prices from Finnhub (15 holdings max, 5min cache).
       </div>
     </div>
   )
