@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import PriceBadge from '@/components/PriceBadge'
+import TradePerformance from '@/components/TradePerformance'
 
 interface PageProps {
   params: Promise<{ symbol: string }>
@@ -75,6 +76,8 @@ export default async function TickerPage({ params }: PageProps) {
           </div>
         ))}
       </div>
+
+      <TradePerformance ticker={symbol.toUpperCase()} />
 
       <h2 className="text-lg font-semibold text-[#f4f4f4] mb-4" style={{ fontFamily: 'var(--font-heading)' }}>Who&apos;s Trading</h2>
       {trades.length === 0 ? (
