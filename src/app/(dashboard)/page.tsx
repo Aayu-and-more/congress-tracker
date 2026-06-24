@@ -1,5 +1,6 @@
 import TradesFeed from '@/components/TradesFeed'
 import SignalsBar from '@/components/SignalsBar'
+import ClusterAlerts from '@/components/ClusterAlerts'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -36,6 +37,7 @@ export default async function FeedPage() {
         )}
       </div>
       <SignalsBar />
+      <ClusterAlerts />
       <TradesFeed />
     </div>
   )
