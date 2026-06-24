@@ -13,8 +13,11 @@ export async function getCandles(
 ): Promise<Candle | null> {
   if (!FINNHUB_KEY || !ticker) return null
   try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 8_000)
     const url = `https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(ticker)}&resolution=D&from=${from}&to=${to}&token=${FINNHUB_KEY}`
-    const res = await fetch(url, { next: { revalidate: 3600 } })
+    const res = await fetch(url, { signal: controller.signal, next: { revalidate: 3600 } })
+    clearTimeout(timer)
     if (!res.ok) return null
     const data = await res.json()
     if (data.s !== 'ok') return null
